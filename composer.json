@@ -1,0 +1,15 @@
+{
+  "name": "neoan3-apps/js",
+  "description": "neoan3 php-js class",
+  "version": "0.0.1",
+  "require": {
+    "neoan3-apps/db": "dev-master",
+    "php": "^7.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Neoan3\\Apps\\": "./"
+    }
+
+  }
+}
