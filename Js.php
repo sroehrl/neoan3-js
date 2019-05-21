@@ -2,6 +2,7 @@
 
 
 namespace Neoan3\Apps;
+
 use Neoan3\Apps\Ops;
 
 /**
@@ -13,22 +14,24 @@ class Js {
     /**
      * @var string
      */
-    public static $toString='{{next}}';
+    public static $toString = '{{next}}';
     /**
-     * @var null
+     * @var null|Js
      */
     private static $_instance = null;
+
+    public static $_vars = [];
 
     /**
      * js constructor.
      */
-    function __construct () { }
+    function __construct() {
+    }
 
     /**
-     * @return js|null
+     * @return Js|null
      */
-    public static function _ ()
-    {
+    public static function _() {
         if (self::$_instance === null) {
             self::$_instance = new self;
             self::then('(function(){ {{next}} })()');
@@ -40,67 +43,77 @@ class Js {
     /**
      * @param $selector
      * @param $on
-     * @return null
+     *
+     * @return Js|null
      */
-    static function __($selector, $on){
-        return self::bind($selector,$on);
+    static function __($selector, $on) {
+        return self::bind($selector, $on);
     }
 
     /**
      * @param $selector
      * @param $on
-     * @return null
+     *
+     * @return Js|null
      */
-    static function bind($selector, $on){
-        self::then('document.querySelector(\''.$selector.'\').addEventListener(\''.$on.'\',{{next}});');
+    static function bind($selector, $on) {
+        self::then('document.querySelector(\'' . $selector . '\').addEventListener(\'' . $on . '\',{{next}});');
         return self::$_instance;
     }
 
     /**
-     * @return null
+     * @return Js|null
      */
-    static function fn(){
+    static function fn() {
         $cString = '';
         $args = func_get_args();
-        foreach ($args as $i=> $arg){
-            $cString .= ($i>0?', ':'').$arg;
+        foreach ($args as $i => $arg) {
+            $cString .= ($i > 0 ? ', ' : '') . $arg;
         }
-        self::then('function('.$cString.'){{{next}}}');
+        self::then('function(' . $cString . '){{{next}}}');
+        return self::$_instance;
+    }
+
+    static function select($selector) {
+        $var = preg_replace('/[^a-z0-9_-]/i', '', $selector);
+        self::$_vars[$selector] = $var;
+        self::then('let ' . $var . ' = document.querySelector(\'' . $selector . '\'); {{next}}');
         return self::$_instance;
     }
 
     /**
-     * @return null
+     * @return Js|null
      */
-    static function nfn(){
+    static function nfn() {
         $cString = '';
         $name = '';
         $args = func_get_args();
-        foreach ($args as $i=> $arg){
-            if($i==0){
+        foreach ($args as $i => $arg) {
+            if ($i == 0) {
                 $name = $arg;
             } else {
-                $cString .= ($i>0?', ':'').$arg;
+                $cString .= ($i > 0 ? ', ' : '') . $arg;
             }
 
         }
-        self::then('function '.$name.'('.$cString.'){{{next}}}');
+        self::then('function ' . $name . '(' . $cString . '){{{next}}}');
         return self::$_instance;
     }
 
     /**
      * @param string $string
-     * @return null
+     *
+     * @return Js|null
      */
-    static function then($string){
-        self::$toString = Ops::embrace(self::$toString,['next'=>$string]);
+    static function then($string) {
+        self::$toString = Ops::embrace(self::$toString, ['next' => $string]);
         return self::$_instance;
     }
 
     /**
      * @return string
      */
-    static function out(){
+    static function out() {
         $save = self::$toString;
         self::$toString = '{{next}}';
         self::$_instance = null;
@@ -108,28 +121,37 @@ class Js {
     }
 
     /**
-     * @return null
+     * @return string
      */
-    static function next(){
-        self::$toString = substr(self::$toString,0,-4). '{{next}} })()';
+    public function __toString() {
+        return self::$toString;
+    }
+
+    /**
+     * @return Js|null
+     */
+    static function next() {
+        self::$toString = substr(self::$toString, 0, -4) . '{{next}} })()';
         return self::$_instance;
     }
 
     /**
      * @param $evaluate
-     * @return null
+     *
+     * @return Js|null
      */
-    static function if($evaluate){
-        self::then('if('.$evaluate.'){ {{next}} }');
+    static function if($evaluate) {
+        self::then('if(' . $evaluate . '){ {{next}} }');
         return self::$_instance;
     }
 
     /**
      * @param $evaluate
-     * @return null
+     *
+     * @return Js|null
      */
-    static function elseif($evaluate){
-        self::then('else if('.$evaluate.'){ {{next}} }');
+    static function elseif($evaluate) {
+        self::then('else if(' . $evaluate . '){ {{next}} }');
         return self::$_instance;
     }
 }
